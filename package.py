@@ -1,7 +1,7 @@
 import csv
 
 class Package:
-    def __init__(self, package_id, address, city, state, zip_code, deadline, weight, notes, delivered=False):
+    def __init__(self, package_id, address, city, state, zip_code, deadline, weight, notes, delivery_time=None, loaded_time=None, status="At the Hub", on_truck=None):
         self.package_id = package_id
         self.address = address
         self.city = city
@@ -10,20 +10,15 @@ class Package:
         self.deadline = deadline
         self.weight = weight
         self.notes = notes
-        self.deliverd = delivered
+        self.status = status
+        self.on_truck = on_truck
+        self.delivery_time = delivery_time
+        self.loaded_time = loaded_time
 
     def __str__(self):
-        return f"Package ID: {self.package_id}, Address: {self.address}, City: {self.city}, State: {self.state}, Zip Code: {self.zip_code}, Deadline: {self.deadline}, Weight: {self.weight}, Notes: {self.notes}, Delivered: {self.deliverd}"
+        return f"""Package ID: {self.package_id}, Address: {self.address}, City: {self.city}, State: {self.state}, Zip Code: {self.zip_code},
+             Deadline: {self.deadline}, Weight: {self.weight}, Notes: {self.notes}, Status: {self.status}, On Truck: {self.on_truck}, delivery time: {self.delivery_time}, loaded time: {self.loaded_time}"""
     
-
-    def read_package_data(csv_file):
-        with open(csv_file, "r", encoding='utf-8-sig') as file:
-            csv_reader = csv.reader(file)
-            package_data = []
-            for row in csv_reader:
-                package_data.append(row)
-            return package_data
-        
     def load_package(package_data):
         packages = []
         for row in package_data:
