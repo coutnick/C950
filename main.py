@@ -4,6 +4,11 @@ from package import Package
 from truck import Truck
 from chaining_hash import ChainingHashTable
 
+
+HUB_ADDRESS = "4001 South 700 East"
+TRUCK_ONE_START = timedelta(hours=8, minutes=0)
+TRUCK_TWO_START = timedelta(hours=9, minutes=5)
+
 def get_distance(index_1, index_2):
     try:
         return distance_data[index_1][index_2]
@@ -32,26 +37,47 @@ def get_shortest_distance(starting_address, package_id_list, package_hash):
 
     return closest_distance, closest_destination, package_to_remove
 
-def deliver_packages(truck, package_hash):
+def deliver_packages(truck, package_hash, search_time=None):
     truck_packages = truck.loaded_packages
+    
+    for package in truck_packages:
+        package_on_truck = package_hash.search(str(package))
+        package_on_truck.on_truck = truck.truck_id
+        package_on_truck.status = "En Route"
+        package_hash.insert(package_on_truck.package_id, package_on_truck)
 
-    while len(truck_packages) != 0: 
+        
+
+    while len(truck_packages) != 0:
+        if search_time and (truck.current_time >= timedelta(search_time)):
+            break
+
         delivery = get_shortest_distance(truck.address, truck_packages, package_hash)
         miles = delivery[0]
         address = delivery[1]
         id = delivery[2]
         truck_packages.remove(id)
         time_to_deliver = miles / 18
-        truck.start_time += timedelta(hours=time_to_deliver)
+        truck.current_time += timedelta(hours=time_to_deliver)
         truck.mileage += miles
         truck.address = address
         delivered_package = package_hash.search(str(id))
         delivered_package.status = "Delivered"
-        delivered_package.delivery_time = truck.start_time
+        delivered_package.delivery_time = truck.current_time
         package_hash.insert(id, delivered_package)
     
-    return truck.start_time
+    if truck.truck_id == 3 and truck.current_time >= timedelta(hours=10, minutes=20):
+            new_address = "410 S State St"
+            package_to_update = package_hash.search(str(9))
+            package_to_update.address = new_address
+            package_hash.insert(6, package_to_update)
     
+    return truck.current_time, truck.mileage
+
+
+
+
+
 # Read package data from csv file
 with open("Data/package_data.csv", "r", encoding='utf-8-sig') as file:
     csv_reader = csv.reader(file)
@@ -89,16 +115,53 @@ package_hash = ChainingHashTable()
 
 for package in packages:
      package_hash.insert(package.package_id, package)
+# Manually load the trucks
+truck_one_packages = [1, 13, 14, 15, 19, 16, 2, 4, 5, 7, 8, 30, 37]
+truck_two_packages = [18, 3, 36, 38, 10, 12, 11, 17, 20, 21, 22, 23, 24, 26,27]
+truck_three_packages = [6, 9, 25, 28, 32, 29, 31, 33, 34, 35,  39, 40]
 
-truck_one_packages = [1, 2, 4, 5, 7, 8, 10, 11, 12, 17, 21, 22, 23, 24, 26, 27]
+truck_one = Truck(1, truck_one_packages, HUB_ADDRESS, 0, TRUCK_ONE_START, TRUCK_ONE_START)
+truck_two = Truck(2, truck_two_packages, HUB_ADDRESS, 0, TRUCK_TWO_START, TRUCK_TWO_START)
 
-truck_two_packages = [3, 18, 36, 38, 15, 19, 13, 14, 16, 20, 29, 30, 31, 33, 34, 35]
+for i in range(1, 41):
+    print(package_hash.search(str(i)))
 
-truck_three_packages = [6, 9, 25, 28, 32, 37, 39, 40]
+class Main():
+    print("""                   Welcome to WGUPS Delivery System
+               -----------------------------------------         
+          1. Print All Package Status and Total Miles
+          2. Get a Single Package Status with a time
+          3. Get All Package Status with a Time
+          4. Exit
+               -----------------------------------------
+          """)
+    user_selection = int(input("What would you like to do? "))
 
-truck_one = Truck(1, truck_one_packages, "4001 South 700 East", 0, start_time)
-truck_two = Truck(2, truck_two_packages, "4001 South 700 East", 0, timedelta(hours=9, minutes=5))
+    if user_selection == 1:
+        truck_one_finish = deliver_packages(truck_one, package_hash)[0]
+        truck_two_finish = deliver_packages(truck_two, package_hash)[0]
+        truck_one_mileage = deliver_packages(truck_one, package_hash)[1]
+        truck_two_mileage = deliver_packages(truck_two, package_hash)[1]
 
+        first_to_finish = min(truck_one_finish, truck_two_finish)
 
+        truck_three = Truck(3, truck_three_packages, HUB_ADDRESS, 0, first_to_finish, first_to_finish)
+        truck_three_mileage = deliver_packages(truck_three, package_hash)[1]
+        for i in range(1, 41):
+            print(package_hash.search(str(i)))
 
+        print("Total Mileage: " + str(truck_one_mileage + truck_two_mileage + truck_three_mileage))
+    
+    elif user_selection == 2:
+        
+        package_query = int(input("Please Enter a package ID"))
+        hour = int(input("Please enter the hour you would like to search"))
+        mins = int(input("Please enter the minutes of the hour you would like to search"))
+        search_time = timedelta(hours=hour, minutes=mins)
+        deliver_packages(truck_one, package_hash, search_time)
+        deliver_packages(truck_two, package_hash, search_time)
+        print(package_hash.search(str(package_query)))
+        
+
+    
 

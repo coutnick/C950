@@ -1,7 +1,7 @@
 import csv
 
 class Package:
-    def __init__(self, package_id, address, city, state, zip_code, deadline, weight, notes, delivery_time=None, status="At the Hub", on_truck=None):
+    def __init__(self, package_id, address, city, state, zip_code, deadline, weight, notes, delivery_time=None, status="At the Hub", on_truck="N/A"):
         self.package_id = package_id
         self.address = address
         self.city = city
@@ -16,7 +16,10 @@ class Package:
         
 
     def __str__(self):
-        return f"{self.package_id},  {self.address},  {self.city},  {self.state},  {self.zip_code},  {self.deadline},  {self.weight}, {self.notes},  {self.status},  {self.on_truck},  {self.delivery_time}"
+        address = (self.address[:30] + '...') if len(self.address) > 33 else self.address
+        notes = (self.notes[:15] + '...') if self.notes and len(self.notes) > 18 else self.notes
+        delivery_time = self.delivery_time if self.delivery_time else "N/A"
+        return f"{self.package_id:<3}  {address:<35} {self.city:<20} {self.state:<5} {self.zip_code:<10} {self.deadline:<10} {self.weight:<6} {notes:<20} {self.status:<10} {self.on_truck} {delivery_time}"
     
     def load_package(package_data):
         packages = []

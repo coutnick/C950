@@ -6,7 +6,7 @@ class Truck():
         self.address = address
         self.mileage = mileage
         self.start_time = start_time
-        self.current_time = start_time
+        self.current_time = current_time
 
     def __str__(self):
         return f"{self.loaded_packages}, {self.address}, {self.mileage}, {self.start_time}, {self.current_time}"
