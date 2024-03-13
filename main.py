@@ -4,7 +4,6 @@ from package import Package
 from truck import Truck
 from chaining_hash import ChainingHashTable
 
-
 HUB_ADDRESS = "4001 South 700 East"
 TRUCK_ONE_START = timedelta(hours=8, minutes=0)
 TRUCK_TWO_START = timedelta(hours=9, minutes=5)
@@ -46,11 +45,10 @@ def deliver_packages(truck, package_hash, search_time=None):
         package_on_truck.status = "En Route"
         package_hash.insert(package_on_truck.package_id, package_on_truck)
 
-        
-
     while len(truck_packages) != 0:
-        if search_time and (truck.current_time >= timedelta(search_time)):
-            break
+        
+        if search_time and (truck.current_time >= search_time):
+                break
 
         delivery = get_shortest_distance(truck.address, truck_packages, package_hash)
         miles = delivery[0]
@@ -74,10 +72,6 @@ def deliver_packages(truck, package_hash, search_time=None):
     
     return truck.current_time, truck.mileage
 
-
-
-
-
 # Read package data from csv file
 with open("Data/package_data.csv", "r", encoding='utf-8-sig') as file:
     csv_reader = csv.reader(file)
@@ -100,16 +94,12 @@ with open("Data/address_data.csv", "r", encoding='utf-8-sig') as file:
     for row in csv_reader: 
         address_data.append(row[2])
 
-
 # Set the start time
 start_time = timedelta(hours=8, minutes=0, seconds=0)
 
-
-
 # Create list of packages
 packages = Package.load_package(package_data)
-
-      
+     
 # Creates a hash table to store all of the packages
 package_hash = ChainingHashTable()
 
@@ -122,6 +112,9 @@ truck_three_packages = [6, 9, 25, 28, 32, 29, 31, 33, 34, 35,  39, 40]
 
 truck_one = Truck(1, truck_one_packages, HUB_ADDRESS, 0, TRUCK_ONE_START, TRUCK_ONE_START)
 truck_two = Truck(2, truck_two_packages, HUB_ADDRESS, 0, TRUCK_TWO_START, TRUCK_TWO_START)
+truck_three = Truck(3, truck_three_packages, HUB_ADDRESS, 0, None, None)
+
+trucks = [truck_one, truck_two, truck_three]
 
 for i in range(1, 41):
     print(package_hash.search(str(i)))
@@ -138,29 +131,34 @@ class Main():
     user_selection = int(input("What would you like to do? "))
 
     if user_selection == 1:
-        truck_one_finish = deliver_packages(truck_one, package_hash)[0]
-        truck_two_finish = deliver_packages(truck_two, package_hash)[0]
-        truck_one_mileage = deliver_packages(truck_one, package_hash)[1]
-        truck_two_mileage = deliver_packages(truck_two, package_hash)[1]
-
-        first_to_finish = min(truck_one_finish, truck_two_finish)
+        truck_one_result = deliver_packages(truck_one, package_hash)
+        truck_two_result = deliver_packages(truck_two, package_hash)
+      
+        first_to_finish = min(truck_one_result[0], truck_two_result[0])
 
         truck_three = Truck(3, truck_three_packages, HUB_ADDRESS, 0, first_to_finish, first_to_finish)
-        truck_three_mileage = deliver_packages(truck_three, package_hash)[1]
+        truck_three_result = deliver_packages(truck_three, package_hash)
+        print(Package.package_print_header())
         for i in range(1, 41):
             print(package_hash.search(str(i)))
 
-        print("Total Mileage: " + str(truck_one_mileage + truck_two_mileage + truck_three_mileage))
+        print("Total Mileage: " + str(truck_one_result[1] + truck_two_result[1] + truck_three_result[1]))
     
     elif user_selection == 2:
         
-        package_query = int(input("Please Enter a package ID"))
-        hour = int(input("Please enter the hour you would like to search"))
-        mins = int(input("Please enter the minutes of the hour you would like to search"))
-        search_time = timedelta(hours=hour, minutes=mins)
-        deliver_packages(truck_one, package_hash, search_time)
-        deliver_packages(truck_two, package_hash, search_time)
-        print(package_hash.search(str(package_query)))
+        package_query = int(input("Please Enter a package ID "))
+        search_time = input("Please enter a time in the format HH:MM:SS ").split(":")
+
+        for truck in trucks:
+            if package_query in truck.loaded_packages:
+                if truck.truck_id == 1 or 2:
+                    deliver_packages(truck_one, package_hash, timedelta(hours=int(search_time[0]), minutes=int(search_time[1]), seconds=int(search_time[2])))
+                    deliver_packages(truck_two, package_hash, timedelta(hours=int(search_time[0]), minutes=int(search_time[1]), seconds=int(search_time[2])))
+
+                    print(package_hash.search(str(package_query)))
+
+        
+        
         
 
     

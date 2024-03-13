@@ -14,7 +14,6 @@ class Package:
         self.delivery_time = delivery_time
         self.on_truck = on_truck
         
-
     def __str__(self):
         address = (self.address[:30] + '...') if len(self.address) > 33 else self.address
         notes = (self.notes[:15] + '...') if self.notes and len(self.notes) > 18 else self.notes
